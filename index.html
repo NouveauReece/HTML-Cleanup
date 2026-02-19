@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html, body {
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            gap: 15px;
+            height: 100%;
+        }
+        textarea {
+            height: 40svh;
+            width: 90vw;
+        }
+        .v-stack {
+            display: flex;
+            flex-direction: column;
+        }
+
+    </style>
+</head>
+<body class="container">
+    <div class="v-stack">
+        <label for="input">Input</label>
+        <textarea name="input" id="input"></textarea>
+    </div>
+    <button id="clean-up-btn">Clean Up!</button>
+    <div class="v-stack">
+        <label for="output">Output</label>
+        <textarea name="output" id="output"></textarea>
+    </div>
+    
+    <script type="module">
+        import {rehype} from 'https://esm.sh/rehype@13?bundle'
+        import rehypeFormat from 'https://esm.sh/rehype-format@5?bundle'
+
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+        const cleanUpBtn = document.getElementById('clean-up-btn');
+        
+        cleanUpBtn.addEventListener('click', async() => {
+
+            const file = await rehype()
+                .use(rehypeFormat)
+                .process(input.value);
+
+
+
+
+            output.value = String(file);
+        });
+        
+    </script>
+</body>
+</html>
