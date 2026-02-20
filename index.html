@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Clean Up!</title>
+    <link rel="stylesheet" href="https://unpkg.com/rivet-core@2.9.1/css/rivet.min.css">
     <style>
         html, body {
             display: flex;
@@ -11,47 +12,147 @@
             align-items: start;
             gap: 15px;
             height: 100%;
+            
+        }
+        body {
+            margin: 20px;
+            width: calc(100% - 40px);
         }
         textarea {
-            height: 40svh;
-            width: 90vw;
+            height: 30svh;
+            width: 100%;
+            justify-self: stretch;
         }
         .v-stack {
             display: flex;
             flex-direction: column;
+            width: 100%;
+        }
+
+        .h-stack {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+        }
+
+        h1,p {
+            margin: 0;
+        }
+
+        #warning {
+            display: none;
         }
 
     </style>
 </head>
 <body class="container">
+    <h1 class="rvt-ts-lg rvt-text-bold">Clean Up!</h1>
+    <p>Quickly cleans up HTML from the WYSIWYG editor in LibApps. All processing is done on-device ;)</p>
     <div class="v-stack">
-        <label for="input">Input</label>
-        <textarea name="input" id="input"></textarea>
-    </div>
-    <button id="clean-up-btn">Clean Up!</button>
-    <div class="v-stack">
-        <label for="output">Output</label>
-        <textarea name="output" id="output"></textarea>
+        <div class="h-stack">
+            <div class="v-stack">
+                
+                <label class="rvt-label" for="input">Input</label>
+                <textarea name="input" id="input" class="rvt-m-bottom-md"></textarea>
+
+                <label class="rvt-label" for="output">Output</label>
+                <textarea name="output" id="output"></textarea>
+
+                <div id="warning" class="rvt-alert rvt-alert--warning [ rvt-m-top-md ]" role="alert" aria-labelledby="warning-alert-title" data-rvt-alert="warning">
+                    <div class="rvt-alert__title" id="warning-alert-title">Warnings</div>
+                    <p class="rvt-alert__message" id="warning-alert-message">Your changes have not been saved. To save your changes, click ‘Save my changes’ or click ‘Cancel’ to exit without saving.</p>
+                </div>
+            </div>
+            <div class="v-stack rvt-m-left-md" style="max-width: 30%">
+                <fieldset id="rules" class="rvt-fieldset rvt-m-bottom-sm">
+                    <legend>Rules</legend>
+                    <ul class="rvt-list-plain rvt-width-xl">
+                        <li>
+                            <div class="rvt-checkbox">
+                                <input aria-describedby="downsize-headings-description" type="checkbox" name="downsize-headings" id="downsize-headings" data-plugin="lowerHeadings" checked>
+                                <label for="downsize-headings">Downsize Headings</label>
+                                <div id="downsize-headings-description" class="rvt-checkbox__description">Lower headings to <code>&lt;h3&gt;</code> or smaller</div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="rvt-checkbox">
+                                <input aria-describedby="clean-headings-description" type="checkbox" name="clean-headings" id="clean-headings" data-plugin="cleanHeadings" checked>
+                                <label for="clean-headings">Clean Headings</label>
+                                <div id="clean-headings-description" class="rvt-checkbox__description">Removes extra tags and custom styles</div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="rvt-checkbox">
+                                <input aria-describedby="remove-text-styles-description" type="checkbox" name="remove-text-styles" id="remove-text-styles" data-plugin="removeTextStyles" checked>
+                                <label for="remove-text-styles">Remove Text Styles</label>
+                                <div id="remove-text-styles-description" class="rvt-checkbox__description">Removes custom in-line CSS text styling</div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="rvt-checkbox">
+                                <input aria-describedby="correct-email-to-description" type="checkbox" name="correct-email-to" id="correct-email-to" data-plugin="correctMailTo" checked>
+                                <label for="correct-email-to">Fix Old IU Emails</label>
+                                <div id="correct-email-to-description" class="rvt-checkbox__description">Changes @indiana.edu to @iu.edu</div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="rvt-checkbox">
+                                <input aria-describedby="remove-empty-description" type="checkbox" name="remove-empty" id="remove-empty" data-plugin="removeEmpty" checked>
+                                <label for="remove-empty">Remove Empty</label>
+                                <div id="remove-empty-description" class="rvt-checkbox__description">Removes empty tags and tags with just whitespace</div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="rvt-checkbox">
+                                <input aria-describedby="new-tags-description" type="checkbox" name="new-tags" id="new-tags" data-plugin="newTags" checked>
+                                <label for="new-tags">Modern Tags</label>
+                                <div id="new-tags-description" class="rvt-checkbox__description">Remove old tags, upgrade <code>&lt;b&gt;</code> to <code>&lt;strong&gt;</code>, etc.</div>
+                            </div>
+                        </li>
+
+                    </ul>
+                </fieldset>
+                <button class="rvt-button" id="clean-up-btn" style="width: max-content">Clean Up!</button>
+            </div>
+        </div>
     </div>
     
     <script type="module">
-        import {rehype} from 'https://esm.sh/rehype@13?bundle'
-        import rehypeFormat from 'https://esm.sh/rehype-format@5?bundle'
+        import {rehype} from 'https://esm.sh/rehype@13?bundle';
+        import rehypeFormat from 'https://esm.sh/rehype-format@5?bundle';
+        import inspectUrls from 'https://esm.sh/@jsdevtools/rehype-url-inspector';
+        import { lowerHeadings } from './plugins/lowerHeadings.js';
+        import { cleanHeadings } from './plugins/cleanHeadings.js';
+        import { removeEmpty } from './plugins/removeEmpty.js';
+        import { removeTextStyles } from './plugins/removeTextStyles.js';
+        import { correctMailTo } from './plugins/correctMailTo.js';
+        import { newTags } from './plugins/newTags.js';
 
         const input = document.getElementById('input');
         const output = document.getElementById('output');
         const cleanUpBtn = document.getElementById('clean-up-btn');
+        const warning = document.getElementById('warning-alert-message');
+
+        const pluginMap = {
+            "lowerHeadings": lowerHeadings,
+            "cleanHeadings" : cleanHeadings,
+            "removeEmpty" : removeEmpty,
+            "removeTextStyles" : removeTextStyles,
+            "correctMailTo" : correctMailTo,
+            "newTags" : newTags
+        };
         
         cleanUpBtn.addEventListener('click', async() => {
 
+            const rules = Array.from(document.querySelectorAll('#rules input:checked')).map(input => pluginMap[input.dataset.plugin]);
+
             const file = await rehype()
+                .use(rules)
+                
                 .use(rehypeFormat)
                 .process(input.value);
 
-
-
-
-            output.value = String(file);
+            output.value = String(file).replaceAll('<html>','').replaceAll('</html>','').replaceAll('<body>','').replaceAll('</body>','').trim();
         });
         
     </script>
